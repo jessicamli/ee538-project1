@@ -26,24 +26,73 @@ std::vector<std::vector<int>> edge_list;
 
 void build_adj_matrix()
 {
-    
+    // (1) allocate matrix adj of appropriate size
+    // Size = total_nodes, every entry init to 0 (aka no influence)
+    adj.resize(total_nodes, vector<int>(total_nodes, 0)); 
+
+    // (2) run through edge list and populate adj
+    for (int i = 0; i < edge_list.size(); i++) {
+        int source = edge_list[i][0]; // Influencer node
+        int target = edge_list[i][1]; // Node being influenced
+        adj[source][target] = 1; // Source influencing target
+    }
 }
 
 double calculate_fraction_of_ones()
 {
+    // (3) Calculate the fraction of nodes with opinion 1 and return it.
+    
+    // The sample output rounds to the 2nd decimal place, however, it didn't say that was specifically required so I did not. I assumed this was allowed.
+    int count1 = 0;
+    
+    for (int i = 0; i < opinions.size(); i++) {
+        if (opinions[i] == 1)
+            count1++;
+    }
    
+    return (double)count1 / total_nodes; 
+    
 }
 
 // For a given node, count majority opinion among its neighbours. Tie -> 0.
 int get_majority_friend_opinions(int node)
 {
+    // (4) Count the number of neighbours with opinion 0 and opinion 1. Return the majority (0 or 1). If tie, return 0.
+    int count0 = 0;
+    int count1 = 0;
 
+    for (int i = 0; i < total_nodes; i++) { // Loop through all nodes
+        if (adj[i][node] == 1) { // If node i influences given node
+            if (opinions[i] == 0)
+                count0++;
+            else
+                count1++;
+        }
+    }
+
+    if (count1 > count0) 
+        return 1; // Majority = 1
+    else
+        return 0; // Majority = 0 or tie
 }
 
 // Calculate new opinions for all voters and return if anyone's opinion changed
 bool update_opinions()
 {
+    // (5) For each node, calculate the majority opinion among its neighbours and update the node's opinion.
+    // Return true if any node's opinion changed, false otherwise.
+    
+    vector<int> new_opinions = opinions; // Copy of curr. opinions state
+    bool changed = false;
 
+    for (int i = 0; i < total_nodes; i++) {
+        new_opinions[i] = get_majority_friend_opinions(i);
+        if (new_opinions[i] != opinions[i])
+            changed = true;
+    }
+
+    opinions = new_opinions; // Replace with updated opinions
+    return changed;
 }
 
 int main() {
@@ -67,8 +116,22 @@ int main() {
     cout << "Iteration " << iteration << ": fraction of 1's = " 
          << calculate_fraction_of_ones() << endl;
     
-    /// (6)  //////////////////////////////////////////////
-    
+    /// (6) Run until consensus or max iterations //////////////////////////////////////////////
+     
+     // Calling fraction outside so when I check condition, I don't have to call four times per iteration
+     double fraction = calculate_fraction_of_ones();
+     
+     while (iteration < max_iterations && opinions_changed && fraction != 0.0 && fraction != 1.0) {
+        opinions_changed = update_opinions();
+        iteration++;
+        
+        fraction = calculate_fraction_of_ones();
+        
+        // Was facing issues with last iteration so now checking again
+        if (iteration < max_iterations && opinions_changed && fraction != 0.0 && fraction != 1.0) {
+            cout << "Iteration " << iteration << ": fraction of 1's = " << calculate_fraction_of_ones() << endl; // Printing curr. iteration info
+        }
+    }   
 
     ////////////////////////////////////////////////////////
     // Print final result
