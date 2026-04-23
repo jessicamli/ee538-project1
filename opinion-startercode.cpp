@@ -19,15 +19,27 @@ int total_nodes = 0; // We keep track of the total number of nodes based on larg
 std::vector<int> opinions;
 
 // global adjacency matrix initialized later
-std::vector<std::vector<int>> adj;
+//std::vector<std::vector<int>> adj; // PART 1
+
+// PART 2: implementing adjacency list instead of adjacency matrix
+// Holds list of nodes that influence node i 
+vector<vector<int>> adj_list;
 
 // edge list: each row contains {source, target}
 std::vector<std::vector<int>> edge_list;
 
-void build_adj_matrix()
+// PART 2: track one_count incrementally 
+// This avoids iterating over all nodes every time and only updates when opinions change (aka O(1) per flip)
+// Track the number of 1s so fraction-of-ones is O(1).
+int ones_count = 0;
+
+void build_adj_list() // Renamed for PART 2 from build_adj_matrix to build_adj_list
 {
     // (1) allocate matrix adj of appropriate size
     // Size = total_nodes, every entry init to 0 (aka no influence)
+    
+    // PART 1
+    /*
     adj.resize(total_nodes, vector<int>(total_nodes, 0)); 
 
     // (2) run through edge list and populate adj
@@ -36,6 +48,22 @@ void build_adj_matrix()
         int target = edge_list[i][1]; // Node being influenced
         adj[source][target] = 1; // Source influencing target
     }
+    */
+
+    // PART 2: setting one inner vector per node
+    adj_list.resize(total_nodes);
+
+    for (auto& e:edge_list) { // where e is a directed edge
+        int source = e[0];
+        int target = e[1];
+
+        // Source influences target
+        adj_list[target].push_back(source);
+    }
+
+    // Free edge_list memory since only needed to build adj_list
+    edge_list.clear(); 
+
 }
 
 double calculate_fraction_of_ones()
@@ -43,6 +71,8 @@ double calculate_fraction_of_ones()
     // (3) Calculate the fraction of nodes with opinion 1 and return it.
     
     // The sample output rounds to the 2nd decimal place, however, it didn't say that was specifically required so I did not. I assumed this was allowed.
+    // PART 1
+    /*
     int count1 = 0;
     
     for (int i = 0; i < opinions.size(); i++) {
@@ -51,7 +81,11 @@ double calculate_fraction_of_ones()
     }
    
     return (double)count1 / total_nodes; 
-    
+    */
+
+    // PART 2: original was O(N), now O(1) with ones_count kept up to date in update_opinions()
+    return (double)ones_count/total_nodes;
+
 }
 
 // For a given node, count majority opinion among its neighbours. Tie -> 0.
@@ -61,6 +95,7 @@ int get_majority_friend_opinions(int node)
     int count0 = 0;
     int count1 = 0;
 
+    /*
     for (int i = 0; i < total_nodes; i++) { // Loop through all nodes
         if (adj[i][node] == 1) { // If node i influences given node
             if (opinions[i] == 0)
@@ -74,6 +109,22 @@ int get_majority_friend_opinions(int node)
         return 1; // Majority = 1
     else
         return 0; // Majority = 0 or tie
+    */
+
+    // PART 2: only iterate over actual neighbors, not all N nodes
+    // Original was O(n) checking for every i, now only touches nodes that actually influence
+    for (int neighbor:adj_list[node]) {
+        if (opinions[neighbor] == 0) {
+            count0++;
+        } else {
+            count1++;
+        }
+    }
+
+    if (count1 > count0) {
+        return 1;
+    }
+    return 0;
 }
 
 // Calculate new opinions for all voters and return if anyone's opinion changed
@@ -85,13 +136,26 @@ bool update_opinions()
     vector<int> new_opinions = opinions; // Copy of curr. opinions state
     bool changed = false;
 
-    for (int i = 0; i < total_nodes; i++) {
+    for (int i = 0; i < total_nodes; ++i) {
         new_opinions[i] = get_majority_friend_opinions(i);
-        if (new_opinions[i] != opinions[i])
-            changed = true;
+        //if (new_opinions[i] != opinions[i])
+        //    changed = true;
     }
 
-    opinions = new_opinions; // Replace with updated opinions
+    //opinions = new_opinions; // Replace with updated opinions
+    
+    // PART 2: update ones_count while applying new opinions
+    ones_count = 0;
+    for (int i = 0; i < total_nodes; i++) {
+        if (new_opinions[i] != opinions[i]) {
+            changed = true;
+        }
+        if (new_opinions[i] ==1) {
+            ones_count++;
+        }
+    }
+
+    opinions = move(new_opinions); // MOVE ALLOWED? =========
     return changed;
 }
 
@@ -103,8 +167,11 @@ int main() {
     read_edges("edge_list.txt");
 
     // convert edge list into adjacency matrix once we know total_nodes
-    build_adj_matrix();
+    //build_adj_matrix();
     
+    // PART 2: build adjacency list
+    build_adj_list();
+
     cout << "Total nodes: " << total_nodes << endl;
     
     // Run simulation
@@ -160,6 +227,7 @@ void read_opinions(string filename)
     while(file >> id >> opinion)
     {
         opinions.push_back(opinion);
+        if (opinion == 1) ones_count++;
         if(id >= total_nodes) total_nodes = id+1;
     }
     file.close();

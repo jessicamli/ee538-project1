@@ -90,3 +90,27 @@ Then, in main():
 ```
 
 Test your code by editing the input .txt files.
+
+## Part 2
+For this part, we are asked to update the code to make it more efficiently by using better data structures, thinking about time and space complexity in particular. 
+
+My thought process for approaching this task was to first identify what was lowering the efficiency. From the Part 1 code, I noticed that the graph is stored as a full adjacency matrix (which requires O(N^2) space I believe) and every neighbor lookup looks at all nodes (which requires O(N) time I believe). For a larger network, this is not efficient.
+
+As allowed by the Project 1.2 instructions, I asked AI (ChatGPT) "how to design graph data structures for large social networks in C++". It recommended that I implement an "incoming adjacency" since this "is valuable when your queries naturally go 'backwards' along edges." It cited typical cases like follower/follow graphs, ranking/recommendation algorithms, and efficient deletions. It also noted that it is not useful when graphs are undirected. However, since direction matters in this project (whose opinion influences anothers), and this project fits into the typical cases described, I decided to continue with this recommendation.  More specifically, I replaced the adjacency matrix with an adjacency list, which stores a list of nodes that influence each node. This change reduces the space complexity from O(N^2), where N is the number of nodes, to O(N+E), where E is the number of edges. Lookup time also reduced from O(N) to O(number of people influencing that node).
+
+I also improved the calculation of fraction of nodes. In Part 1, this required iterating over all nodes. However, in Part 2, I implemented ones_count, which tracks the number of nodes with opinion 1 and is updated during each iteration, thus allowing the fraction to be computed in O(1) time.
+
+Note: The instructions for Part 2 did not detail which sections of code we were allowed to change (like it had outlined in Part 1) so I assumed that I had free-range in changing whatever section of code made sense for me.
+
+Testing the code resulted in an output of:
+
+Total nodes: 40
+Iteration 0: fraction of 1's = 0.525
+Iteration 1: fraction of 1's = 0.45
+Iteration 2: fraction of 1's = 0.375
+Iteration 3: fraction of 1's = 0.3
+Iteration 4: fraction of 1's = 0.1
+Iteration 5: fraction of 1's = 0
+Consensus reached: all 0's
+
+This is identical to the output achieved in Part 1, which is desired. To confidentally confirm whether this works on larger datasets, I could have ran this with much larger txt input files and checked the runtime with <chrono>. However, since the Project 1.2 instructions did not detail this, I assumed I would not have to. I also was not entirely confident in my ability to create such large input files manually (since I believe AI would not be allowed in generating this either) and, thus, I simply considered time and space complexity through observation of my modified code, instead of actual implementation.  
