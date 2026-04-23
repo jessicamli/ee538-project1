@@ -92,7 +92,7 @@ Then, in main():
 Test your code by editing the input .txt files.
 
 ## Part 2
-For this part, we are asked to update the code to make it more efficiently by using better data structures, thinking about time and space complexity in particular. 
+For this part, we are asked to update the code to make it more efficient by using better data structures, thinking about time and space complexity in particular. 
 
 My thought process for approaching this task was to first identify what was lowering the efficiency. From the Part 1 code, I noticed that the graph is stored as a full adjacency matrix (which requires O(N^2) space I believe) and every neighbor lookup looks at all nodes (which requires O(N) time I believe). For a larger network, this is not efficient.
 
@@ -113,4 +113,4 @@ Iteration 4: fraction of 1's = 0.1
 Iteration 5: fraction of 1's = 0
 Consensus reached: all 0's
 
-This is identical to the output achieved in Part 1, which is desired. To confidentally confirm whether this works on larger datasets, I could have ran this with much larger txt input files and checked the runtime with <chrono>. However, since the Project 1.2 instructions did not detail this, I assumed I would not have to. I also was not entirely confident in my ability to create such large input files manually (since I believe AI would not be allowed in generating this either) and, thus, I simply considered time and space complexity through observation of my modified code, instead of actual implementation.  
+This is identical to the output achieved in Part 1, which is desired. To confidently confirm whether this works on larger datasets, I could have ran this with much larger txt input files and checked the runtime with <chrono>. However, since the Project 1.2 instructions did not detail this, I assumed I would not have to. I also was not entirely confident in my ability to create such large input files manually (since I believe AI would not be allowed in generating this either) and, thus, I simply considered time and space complexity through observation of my modified code, instead of actual implementation.  
